@@ -21,11 +21,11 @@ async def upload_image(image_bytes: bytes) -> Optional[str]:
         logger.error(f"Error uploading image: {e}")
         return None
 
-async def register_question(question_json: Dict[str, Any]) -> bool:
+async def register_question(question_json: Dict[str, Any], token: str) -> bool:
     """Sends the question JSON to the registration API."""
     url = f"{settings.TARGET_API_BASE_URL}/questao/criar-questao"
     headers = {
-        "Authorization": f"Bearer {settings.TARGET_API_TOKEN}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
     

@@ -1,16 +1,17 @@
-import json
 import logging
 import os
-from typing import List, Optional
 from datetime import datetime
+from typing import List
+
+from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.chat_models import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_vertexai import ChatVertexAI
-from langchain_community.chat_models import ChatOllama
-from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
-from app.models.schemas import QuestionCreate
+
 from app.core.config import settings
+from app.models.schemas import QuestionCreate
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,25 @@ INSTRUCTIONS:
    - `alternativaCorreta` (index of the correct alternative)
    - `fonte` (source)
    - `dificuldade` (difficulty: FACIL, MEDIA, DIFICIL)
+   - `area`: (Long) Map the question content to the correct ID based on this table:
+     * 7: ADMINISTRAÇÃO / TÉCNICA ADMINISTRAÇÃO / ADM
+     * 1: ATUALIDADES / ATU
+     * 2: CIÊNCIAS DA NATUREZA / NAT
+     * 8: CONTABILIDADE / TÉCNICA CONTABILIDADE / CON
+     * 9: ELETRÔNICA / TÉCNICA ELETRÔNICA / ELE
+     * 3: HUMANAS / CIÊNCIAS HUMANAS / HUM
+     * 10: INFORMÁTICA / TÉCNICA INFORMÁTICA / INF
+     * 4: LINGUAGENS / CÓDIGOS E TECNOLOGIAS / LNG
+     * 6: REDAÇÃO / RED
+1,ATUALIDADES,ATUALIDADES,ATU
+2,CIÊNCIAS DA NATUREZA,CIÊNCIAS DA NATUREZA E SUAS TECNOLOGIAS,NAT
+8,CONTABILIDADE,TÉCNICA CONTABILIDADE,CON
+9,ELETRÔNICA,TÉCNICA ELETRÔNICA,ELE
+3,HUMANAS,CIÊNCIAS HUMANAS E SUAS TECNOLOGIAS,HUM
+10,INFORMÁTICA,TÉCNICA INFORMÁTICA,INF
+4,LINGUAGENS,"LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",LNG
+6,REDAÇÃO,REDAÇÃO,RED
+)
 3. Each alternative must contain:
    - `corpo` (text)
    - `correta` (boolean)

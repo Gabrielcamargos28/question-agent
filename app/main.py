@@ -42,8 +42,8 @@ async def startup_event():
 @app.post("/extract-questions")
 async def extract_questions(
     file: UploadFile = File(...),
-    model: str = Form("gemini-2.0-flash"),
-    limit: int = Form(5)
+    model: str = Form("gemini-2.5-flash-lite"),
+    limit: int = Form(5),token: str = Form("")
 ):
     """
     Main endpoint to extract questions from PDF/DOCX documents.
@@ -73,7 +73,7 @@ async def extract_questions(
         
         registration_results = []
         for q in questions_dict:
-            success = await register_question(q)
+            success = await register_question(q,token)
             registration_results.append(success)
             
         log_iteration_context(f"Extraction completed: {len(questions_dict)} questions processed.")
