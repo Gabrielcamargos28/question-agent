@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from typing import List, Optional
+from datetime import datetime
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_vertexai import ChatVertexAI
 from langchain_community.chat_models import ChatOllama
@@ -54,6 +55,38 @@ RAW DOCUMENT TEXT:
 RETURN ONLY THE JSON:
 """
 
+def log_token_usage(model_name: str, usage_metadata: dict):
+    """Calculates and logs the cost of the AI request."""
+    input_tokens = usage_metadata.get("input_tokens", 0)
+    output_tokens = usage_metadata.get("output_tokens", 0)
+    total_tokens = usage_metadata.get("total_tokens", 0)
+    
+    # Identify the base model for pricing
+    base_model = "gemini-1.5-flash"  # default
+    for m in settings.MODEL_PRICING.keys():
+        if m in model_name.lower():
+            base_model = m
+            break
+            
+    pricing = settings.MODEL_PRICING.get(base_model, settings.MODEL_PRICING["gemini-1.5-flash"])
+    cost = (input_tokens / 1_000_000 * pricing["input"]) + (output_tokens / 1_000_000 * pricing["output"])
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = (
+        f"| {timestamp} | {model_name} | {input_tokens} | {output_tokens} | {total_tokens} | ${cost:.6f} |\n"
+    )
+    
+    if not os.path.exists(settings.COSTS_FILE):
+        with open(settings.COSTS_FILE, "w", encoding="utf-8") as f:
+            f.write("# Token Usage and Costs\n\n")
+            f.write("| Timestamp | Model | Input | Output | Total | Cost (USD) |\n")
+            f.write("|-----------|-------|-------|--------|-------|------------|\n")
+            
+    with open(settings.COSTS_FILE, "a", encoding="utf-8") as f:
+        f.write(log_entry)
+        
+    logger.info(f"Tokens used: {total_tokens} (Cost: ${cost:.6f})")
+
 def get_model(model_name: str):
     """Returns the AI model instance based on the name."""
     if "gemini" in model_name.lower():
@@ -101,6 +134,11 @@ async def extract_questions_ai(text: str, model_name: str, limit: int = 5) -> Li
     
     try:
         response = await model.ainvoke(input_data)
+        
+        # Log token usage if metadata is available
+        if hasattr(response, "usage_metadata") and response.usage_metadata:
+            log_token_usage(model_name, response.usage_metadata)
+            
         result = parser.parse(response.content)
         return result.questions
 

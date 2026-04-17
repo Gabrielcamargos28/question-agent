@@ -3,8 +3,8 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Target API (Where questions will be registered)
-    TARGET_API_BASE_URL: str = "https://api.yoursystem.com"
-    TARGET_API_TOKEN: str = "your_token"
+    TARGET_API_BASE_URL: str = ""
+    TARGET_API_TOKEN: str = ""
 
     # AI Models
     GEMINI_API_KEY: Optional[str] = None
@@ -18,6 +18,15 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     ITERATIONS_FILE: str = "logs/iteration_contexts.md"
     QUESTIONS_FILE: str = "logs/questions_log.md"
+    COSTS_FILE: str = "logs/costs.md"
+
+    # Pricing per 1M tokens (Approximate values for Gemini 1.5/2.0 Flash)
+    # Price in USD
+    MODEL_PRICING: dict = {
+        "gemini-1.5-flash": {"input": 0.075, "output": 0.30},
+        "gemini-2.0-flash": {"input": 0.10, "output": 0.40},
+        "gemini-2.0-flash-lite": {"input": 0.075, "output": 0.30},
+    }
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

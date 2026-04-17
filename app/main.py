@@ -34,10 +34,10 @@ def save_questions_locally(questions: List[dict]):
 @app.on_event("startup")
 async def startup_event():
     # Initialize files if they don't exist
-    for file in [settings.ITERATIONS_FILE, settings.QUESTIONS_FILE]:
+    for file in [settings.ITERATIONS_FILE, settings.QUESTIONS_FILE, settings.COSTS_FILE]:
         if not os.path.exists(file):
             with open(file, "w", encoding="utf-8") as f:
-                f.write(f"# {file.replace('.md', '').replace('_', ' ').capitalize()}\n\n")
+                f.write(f"# {file.replace('.md', '').replace('_', ' ').split('/')[-1].capitalize()}\n\n")
 
 @app.post("/extract-questions")
 async def extract_questions(
