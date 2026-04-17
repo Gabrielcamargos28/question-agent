@@ -5,10 +5,10 @@ from typing import List, Optional
 import json
 from datetime import datetime
 
-from config import settings
-from services.document_parser import parse_document
-from services.ai_extractor import extract_questions_ai
-from services.api_client import upload_image, register_question
+from app.core.config import settings
+from app.services.document_parser import parse_document
+from app.services.ai_extractor import extract_questions_ai
+from app.services.api_client import upload_image, register_question
 
 # Logging Configuration
 logging.basicConfig(level=settings.LOG_LEVEL)

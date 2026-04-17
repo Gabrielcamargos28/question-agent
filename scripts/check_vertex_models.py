@@ -1,6 +1,6 @@
 import os
 from google.cloud import aiplatform
-from config import settings
+from app.core.config import settings
 
 def list_models():
     print(f"--- Diagnóstico Vertex AI ---")

@@ -1,13 +1,11 @@
 import asyncio
 import os
-import json
-from services.document_parser import parse_document
-from services.ai_extractor import extract_questions_ai
-from config import settings
+from app.services.document_parser import parse_document
+from app.services.ai_extractor import extract_questions_ai
 
 async def main():
     # Caminho do arquivo de prova
-    pdf_path = "prova-pluri-ELE-2.pdf"
+    pdf_path = "data/raw/prova-pluri-ELE-2.pdf"
     
     if not os.path.exists(pdf_path):
         print(f"Erro: Arquivo {pdf_path} não encontrado.")

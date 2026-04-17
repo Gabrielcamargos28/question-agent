@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     # Agent Settings
     LOG_LEVEL: str = "INFO"
     DEBUG: bool = True
-    ITERATIONS_FILE: str = "iteration_contexts.md"
-    QUESTIONS_FILE: str = "questions_log.md"
+    ITERATIONS_FILE: str = "logs/iteration_contexts.md"
+    QUESTIONS_FILE: str = "logs/questions_log.md"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

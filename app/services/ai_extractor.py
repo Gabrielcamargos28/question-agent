@@ -8,8 +8,8 @@ from langchain_community.chat_models import ChatOllama
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
-from models.schemas import QuestionCreate
-from config import settings
+from app.models.schemas import QuestionCreate
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
