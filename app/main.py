@@ -57,7 +57,7 @@ async def extract_questions(
         text, images = parse_document(content, file.filename)
         
         # 2. AI Extraction
-        questions_pydantic = await extract_questions_ai(text, model, limit)
+        questions_pydantic = await extract_questions_ai(text, model, limit, token)
         
         if not questions_pydantic:
             raise HTTPException(status_code=500, detail="Could not extract questions from the document.")
@@ -73,6 +73,7 @@ async def extract_questions(
         
         registration_results = []
         for q in questions_dict:
+            print("question: ", q)
             success = await register_question(q,token)
             registration_results.append(success)
             

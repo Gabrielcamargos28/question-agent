@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.models.schemas import QuestionCreate
+from app.services.api_client import list_disciplines_by_area
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +26,49 @@ class QuestionList(BaseModel):
 # Configuration of the Parser to force structured output
 parser = PydanticOutputParser(pydantic_object=QuestionList)
 
+AREA_DETECTION_PROMPT = """
+Analyze the following text and identify which educational area it belongs to.
+Choose the MOST APPROPRIATE area ID from this list:
+* 7: ADMINISTRAÇÃO / TÉCNICA ADMINISTRAÇÃO / ADM
+* 1: ATUALIDADES / ATU
+* 2: CIÊNCIAS DA NATUREZA / NAT
+* 8: CONTABILIDADE / TÉCNICA CONTABILIDADE / CON
+* 9: ELETRÔNICA / TÉCNICA ELETRÔNICA / ELE
+* 3: HUMANAS / CIÊNCIAS HUMANAS / HUM
+* 10: INFORMÁTICA / TÉCNICA INFORMÁTICA / INF
+* 4: LINGUAGENS / CÓDIGOS E TECNOLOGIAS / LNG
+* 6: REDAÇÃO / RED
+
+If there are multiple areas, list them separated by commas.
+RETURN ONLY THE ID(S), NOTHING ELSE.
+
+TEXT:
+{text}
+"""
+
 PROMPT_TEMPLATE = """
 You are an expert in education and data processing. 
 Your task is to extract questions from raw text originating from PDF or DOCX documents.
 
+We have already identified that the document likely belongs to the following Area IDs: {detected_areas}
+
+I will provide a list of available Disciplines and Subjects for these areas. 
+You MUST use the IDs from this list to populate `disciplinas` and `assuntos`.
+Even though they are arrays, you should usually pick the ONE best fit for each.
+
+AVAILABLE CONTEXT (Disciplines and Subjects):
+{context}
+
 INSTRUCTIONS:
 1. Analyze the text and identify the questions.
 2. Each question must contain: 
-   - `titulo` (title)
+   - `titulo` (title based in question body text)
    - `corpo` (question body text)
    - `alternativas` (list of alternatives)
    - `alternativaCorreta` (index of the correct alternative)
    - `fonte` (source)
-   - `dificuldade` (difficulty: FACIL, MEDIA, DIFICIL)
-   - `area`: (Long) Map the question content to the correct ID based on this table:
+   - `dificuldade` (difficulty: Fácil, Médio, Difícil)
+   - `area`: (Integer) The ID of the area this question belongs to. Choose from the detected areas ({detected_areas}) or from this table:
      * 7: ADMINISTRAÇÃO / TÉCNICA ADMINISTRAÇÃO / ADM
      * 1: ATUALIDADES / ATU
      * 2: CIÊNCIAS DA NATUREZA / NAT
@@ -48,7 +78,8 @@ INSTRUCTIONS:
      * 10: INFORMÁTICA / TÉCNICA INFORMÁTICA / INF
      * 4: LINGUAGENS / CÓDIGOS E TECNOLOGIAS / LNG
      * 6: REDAÇÃO / RED
-)
+   - `disciplinas`: (List[Integer]) The ID of the discipline from the context above that best matches the question.
+   - `assuntos`: (List[Integer]) The ID of the subject from the context above that best matches the question.
 3. Each alternative must contain:
    - `corpo` (text)
    - `correta` (boolean)
@@ -131,20 +162,59 @@ def get_model(model_name: str):
     else:
         raise ValueError(f"Model {model_name} not supported.")
 
-async def extract_questions_ai(text: str, model_name: str, limit: int = 5) -> List[QuestionCreate]:
-    """Uses LLM to transform raw text into Question objects."""
+async def extract_questions_ai(text: str, model_name: str, limit: int = 5, token: str = None) -> List[QuestionCreate]:
+    """Uses LLM to transform raw text into Question objects with area, discipline and subject correlation."""
     model = get_model(model_name)
     
-    prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    
-    # Prepare the input for the model
-    input_data = prompt.format_messages(
-        limit=limit,
-        format_instructions=parser.get_format_instructions(),
-        document_text=text
-    )
+    # 1. Detect Area
+    area_detection_prompt = ChatPromptTemplate.from_template(AREA_DETECTION_PROMPT)
+    area_input = area_detection_prompt.format_messages(text=text[:4000]) # Use first 4000 chars for detection
     
     try:
+        area_response = await model.ainvoke(area_input)
+        area_ids_str = area_response.content.strip()
+        logger.info(f"Detected areas: {area_ids_str}")
+        
+        # Parse area IDs
+        area_ids = []
+        for part in area_ids_str.split(","):
+            try:
+                # Try to find digits in case the model returns something like "Area: 10"
+                import re
+                match = re.search(r"\d+", part)
+                if match:
+                    area_ids.append(int(match.group()))
+            except ValueError:
+                continue
+                
+        # 2. Fetch Context from API
+        context_text = "No specific context available."
+        if area_ids and token:
+            all_disciplines = []
+            for a_id in area_ids:
+                disciplines = await list_disciplines_by_area(a_id, token)
+                all_disciplines.extend(disciplines)
+            
+            if all_disciplines:
+                context_parts = []
+                for d in all_disciplines:
+                    d_info = f"Discipline: {d['nome']} (ID: {d['id']})\nSubjects:\n"
+                    for s in d.get("assuntos", []):
+                        d_info += f"  - {s['nome']} (ID: {s['id']})\n"
+                    context_parts.append(d_info)
+                context_text = "\n".join(context_parts)
+        
+        # 3. Main Extraction
+        prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        
+        input_data = prompt.format_messages(
+            limit=limit,
+            format_instructions=parser.get_format_instructions(),
+            document_text=text,
+            context=context_text,
+            detected_areas=area_ids_str
+        )
+        
         response = await model.ainvoke(input_data)
         
         # Log token usage if metadata is available

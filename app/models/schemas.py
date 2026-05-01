@@ -27,15 +27,19 @@ class QuestionBase(BaseModel):
     titulo: Optional[str] = None
     alternativas: List[Alternative]
     alternativaCorreta: int
-    dataCriacao: Optional[date] = Field(default_factory=date.today)
     dificuldade: Optional[str] = "MEDIA"
     aprovada: bool = True
     assuntos: List[int] = []
     assuntosInterdisciplinares: List[int] = []
-    area: Optional[int] = 0
+    area: Optional[int] = None
     disciplinas: List[int] = []
-    ano: Optional[int] = 0
-    origem: Optional[Origin] = None
+    ano: Optional[int] = None
+    origem: Optional[Origin] = Origin(
+        id=22,
+        label="QUESTION_AGENT",
+        descricao="Agente de cadastro de questões antigas",
+        valor=0,
+        grupoFluxo="PLATAFORMA")
     arquivos: List[FileModel] = []
     introducaoAlternativa: Optional[str] = None
     linguagem: Optional[str] = "PT_BR"

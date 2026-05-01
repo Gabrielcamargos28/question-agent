@@ -1,6 +1,6 @@
 import httpx
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -40,3 +40,34 @@ async def register_question(question_json: Dict[str, Any], token: str) -> bool:
         if hasattr(e, 'response') and e.response:
             logger.error(f"API Response: {e.response.text}")
         return False
+
+async def list_disciplines_by_area(area_id: int, token: str) -> List[Dict[str, Any]]:
+    """
+    Lists disciplines and their subjects for a given area ID.
+    Uses the /disciplina/listar-disciplinas-por-area endpoint.
+    """
+    url = f"{settings.TARGET_API_BASE_URL}/disciplina/listar-disciplinas-por-area"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Query parameters for GET request
+    params = {
+        "page": 0,
+        "size": 100,
+        "sort": "nome",
+        "areaId": area_id
+    }
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            return data.get("content", [])
+    except Exception as e:
+        logger.error(f"Error fetching disciplines for area {area_id}: {e}")
+        if hasattr(e, 'response') and e.response:
+             logger.error(f"API Response: {e.response.text}")
+        return []
