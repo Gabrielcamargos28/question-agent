@@ -2505,3 +2505,47 @@
 }
 ```
 
+## Extraction at 2026-05-02 17:31:15
+
+```json
+{
+  "corpo": "Qual a capital da França?",
+  "fonte": null,
+  "titulo": "Geografia",
+  "alternativas": [
+    {
+      "id": 0,
+      "corpo": "Paris",
+      "correta": true,
+      "posicao": 1,
+      "arquivos": []
+    },
+    {
+      "id": 0,
+      "corpo": "Londres",
+      "correta": false,
+      "posicao": 2,
+      "arquivos": []
+    }
+  ],
+  "alternativaCorreta": 1,
+  "dificuldade": "MEDIA",
+  "aprovada": true,
+  "assuntos": [],
+  "assuntosInterdisciplinares": [],
+  "area": null,
+  "disciplinas": [],
+  "ano": null,
+  "origem": {
+    "id": 22,
+    "label": "QUESTION_AGENT",
+    "descricao": "Agente de cadastro de questões antigas",
+    "valor": 0,
+    "grupoFluxo": "PLATAFORMA"
+  },
+  "arquivos": [],
+  "introducaoAlternativa": null,
+  "linguagem": "PT_BR"
+}
+```
+

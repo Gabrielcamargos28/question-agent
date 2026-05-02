@@ -65,9 +65,9 @@ async def startup_event():
 )
 async def extract_questions(
     file: Annotated[UploadFile, File(description="The document (PDF or DOCX) to extract questions from")],
-    token: Annotated[str, Form(description="Authentication token")],
     model: Annotated[str, Form(description="The AI model to use for extraction")] = "gemini-2.5-flash-lite",
-    limit: Annotated[int, Form(description="Maximum number of questions to extract")] = 5
+    limit: Annotated[int, Form(description="Maximum number of questions to extract")] = 5,
+    token: Annotated[str, Form(description="Optional authentication token for the target API")] = ""
 ):
     """
     Main endpoint to extract questions from PDF/DOCX documents.

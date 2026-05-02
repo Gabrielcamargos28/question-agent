@@ -76,3 +76,11 @@
 
 ### [2026-04-17 15:39:32] Extraction completed: 4 questions processed.
 
+### [2026-05-02 17:31:15] Starting extraction for file: test.pdf using model: gemini-2.5-flash-lite
+
+### [2026-05-02 17:31:15] Extraction completed: 1 questions processed.
+
+### [2026-05-02 17:31:15] Starting extraction for file: test.pdf using model: gemini-2.5-flash-lite
+
+### [2026-05-02 17:31:15] FAILURE in extraction: 500: Could not extract questions from the document.
+
