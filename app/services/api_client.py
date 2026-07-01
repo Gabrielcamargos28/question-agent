@@ -5,20 +5,30 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-async def upload_image(image_bytes: bytes) -> Optional[str]:
+async def upload_image(image_bytes: bytes, token: Optional[str] = None) -> Optional[str]:
     """Uploads an image to the storage endpoint and returns the URL."""
     url = f"{settings.TARGET_API_BASE_URL}/controle-de-arquivos/enviar/"
-    headers = {"Authorization": f"Bearer {settings.TARGET_API_TOKEN}"}
+    auth_token = token or settings.TARGET_API_TOKEN
+    headers = {}
+    if auth_token:
+        headers["Authorization"] = f"Bearer {auth_token}"
     files = {"image": ("image.png", image_bytes, "image/png")}
     
+    logger.info(f"Uploading image file ({len(image_bytes)} bytes) to endpoint: '{url}'...")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, files=files)
+            logger.info(f"Upload image response status: {response.status_code}")
             response.raise_for_status()
             data = response.json()
-            return data.get("url")
+            # The API returns the download path under the key "path" (or fallback to "url")
+            path = data.get("path") or data.get("url")
+            logger.info(f"Image upload successful. Path: '{path}'")
+            return path
     except Exception as e:
-        logger.error(f"Error uploading image: {e}")
+        logger.error(f"Error uploading image to '{url}': {e}")
+        if hasattr(e, 'response') and e.response:
+            logger.error(f"API Response: {e.response.text}")
         return None
 
 async def register_question(question_json: Dict[str, Any], token: str) -> bool:
@@ -29,14 +39,31 @@ async def register_question(question_json: Dict[str, Any], token: str) -> bool:
         "Content-Type": "application/json"
     }
     
+    # Detached entity fix: The Spring Boot backend's QuestaoService has a duplicate-saving bug.
+    # It manually saves files in the 'arquivos' list and then saves the Questao entity,
+    # which cascades the save operation back to the same files, causing a "detached entity passed to persist" error.
+    # To fix this, we clear the 'arquivos' list in the JSON payload.
+    # The backend will still correctly extract and save the images from the HTML body/alternatives
+    # via its processarImagensDoHTML method.
+    clean_payload = question_json.copy()
+    clean_payload["arquivos"] = []
+    if "alternativas" in clean_payload:
+        clean_payload["alternativas"] = [
+            {**alt, "arquivos": []} for alt in clean_payload["alternativas"]
+        ]
+        
+    title = clean_payload.get("titulo", "Untitled")
+    area = clean_payload.get("area", "N/A")
+    logger.info(f"Registering question. Title: '{title}' | Area ID: {area} to: '{url}'...")
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, headers=headers, json=question_json)
+            response = await client.post(url, headers=headers, json=clean_payload)
+            logger.info(f"Register question response status: {response.status_code}")
             response.raise_for_status()
-            logger.info("Question registered successfully!")
+            logger.info(f"Question '{title}' registered successfully!")
             return True
     except Exception as e:
-        logger.error(f"Error registering question: {e}")
+        logger.error(f"Error registering question '{title}' to '{url}': {e}")
         if hasattr(e, 'response') and e.response:
             logger.error(f"API Response: {e.response.text}")
         return False
@@ -60,14 +87,17 @@ async def list_disciplines_by_area(area_id: int, token: str) -> List[Dict[str, A
         "areaId": area_id
     }
     
+    logger.info(f"Fetching disciplines from API: '{url}' for Area ID: {area_id}...")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, headers=headers, params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("content", [])
+            content = data.get("content", [])
+            logger.info(f"Fetched {len(content)} disciplines for Area ID {area_id}.")
+            return content
     except Exception as e:
-        logger.error(f"Error fetching disciplines for area {area_id}: {e}")
+        logger.error(f"Error fetching disciplines for area {area_id} from '{url}': {e}")
         if hasattr(e, 'response') and e.response:
              logger.error(f"API Response: {e.response.text}")
         return []

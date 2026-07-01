@@ -3,12 +3,12 @@ from typing import List, Optional
 from datetime import date
 
 class FileModel(BaseModel):
-    id: Optional[int] = Field(0, description="Unique identifier for the file")
+    id: Optional[int] = Field(None, description="Unique identifier for the file")
     nome: str = Field(..., description="Name of the file")
     url: str = Field(..., description="Public URL or path to the file")
 
 class Alternative(BaseModel):
-    id: Optional[int] = Field(0, description="Unique identifier for the alternative")
+    id: Optional[int] = Field(None, description="Unique identifier for the alternative")
     corpo: str = Field(..., description="Text content of the alternative")
     correta: bool = Field(..., description="Indicates if this is the correct answer")
     posicao: int = Field(..., description="The order position of the alternative (1, 2, 3...)")
@@ -35,8 +35,8 @@ class QuestionBase(BaseModel):
     disciplinas: List[int] = Field([], description="List of discipline IDs")
     ano: Optional[int] = Field(None, description="Year the question was created/used")
     origem: Optional[Origin] = Field(Origin(
-        id=22,
-        label="QUESTION_AGENT",
+        id=0,
+        label="AGENTE_QUESTAO",
         descricao="Agente de cadastro de questões antigas",
         valor=0,
         grupoFluxo="PLATAFORMA"), description="Information about the source of the question")

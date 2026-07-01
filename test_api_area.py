@@ -2,7 +2,7 @@ import urllib.request
 import json
 import urllib.error
 
-def test_payload(payload, description):
+def run_test_payload(payload, description):
     print(f"--- Testing: {description} ---")
     url = 'http://localhost:8081/questao/criar-questao'
     headers = {'Content-Type': 'application/json'}
@@ -34,5 +34,6 @@ payload_obj = {
     "area": {"id": 6}
 }
 
-test_payload(payload_int, "area as integer (current)")
-test_payload(payload_obj, "area as object {'id': 6}")
+if __name__ == '__main__':
+    run_test_payload(payload_int, "area as integer (current)")
+    run_test_payload(payload_obj, "area as object {'id': 6}")
