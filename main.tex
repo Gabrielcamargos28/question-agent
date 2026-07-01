@@ -133,29 +133,20 @@ O arquivo \lstinline{tests/test_image_handler.py} valida de forma isolada a roti
 Os arquivos \lstinline{tests/test_api_v3.py} e \lstinline{tests/test_ingestion_api.py} cobrem as rotas expostas pelo FastAPI. Simulamos um diretório com arquivos e testamos a chamada ao endpoint \lstinline{/ingest-question-bank} usando um cliente HTTP de testes assíncronos (\lstinline{httpx.AsyncClient}). Os testes confirmam que a tarefa em segundo plano (\lstinline{BackgroundTasks}) é enfileirada, que os arquivos de logs de auditoria são preenchidos corretamente e que o endpoint de status reflete a progressão dos arquivos e das questões de forma precisa.
 
 \section{Perguntas de Pesquisa e Métricas de Avaliação}
-Para quantificar o impacto técnico e econômico da arquitetura proposta na ingestão de dados legados do PLURI, definimos as seguintes Perguntas de Pesquisa (PP):
+Para quantificar a eficácia dos Large Language Models como assistentes e avaliar a robustez da arquitetura gerada para a plataforma PLURI, definimos as seguintes Questões de Pesquisa (RQs) em alinhamento com a proposta de mestrado do projeto:
 \begin{itemize}
-\item \textbf{PP1: Qualidade de Extração Semântica.} Qual o grau de acerto do agente em classificar e correlacionar a disciplina e assunto corretos com o banco de dados legados da plataforma?
-\item \textbf{PP2: Conformidade Sintática com a API.} Como o pipeline se comporta na prevenção de falhas de desserialização e violação de restrições na API de destino?
-\item \textbf{PP3: Eficiência Econômica e Resiliência.} Como a introdução de técnicas de sliding-window chunking e controle de cota atenua erros de rede e otimiza custos?
-\item \textbf{PP4: Redução de Redundância Multimídia.} Qual o impacto do algoritmo de hashing MD5 na eliminação de imagens redundantes?
+\item \textbf{RQ1 (Eficácia na Geração de Código):} Como diferentes modelos (Gemini 1.5 Pro vs. Flash) se comportam na geração de módulos de parsing e integração que atendam a requisitos de negócio reais?
+\item \textbf{RQ2 (Design e Modelagem):} Em que medida o uso de LLMs facilita a definição de contratos de dados (schemas Pydantic) e a estruturação de uma arquitetura modular?
+\item \textbf{RQ3 (Qualidade e Refatoração):} Qual o nível de intervenção humana e refatoração necessário para tornar o código gerado pelo LLM "pronto para produção"?
+\item \textbf{RQ4 (Técnicas de Prompting):} Como a transição de Zero-shot para Few-shot impacta a robustez do código de extração gerado?
 \end{itemize}
 
-Para responder a essas perguntas de pesquisa, empregamos as seguintes métricas quantitativas:
+Para responder de forma empírica a essas perguntas, empregamos as seguintes métricas de Engenharia de Software:
 \begin{enumerate}
-\item \textbf{F1-Score de Mapeamento Semântico ($F_1$):} Mede a acurácia da classificação de disciplinas e assuntos comparando a saída estruturada do agente com um conjunto de dados padrão (ground truth) anotado manualmente por coordenadores pedagógicos:
-\begin{equation}
-F_1 = 2 \times \frac{\text{Precisão} \times \text{Revogação}}{\text{Precisão} + \text{Revogação}}
-\end{equation}
-\item \textbf{Taxa de Sucesso de Cadastro (TSC):} Mede a porcentagem de requisições de cadastro que retornaram resposta HTTP 200/201 (Sucesso) em relação ao total de tentativas submetidas à API REST:
-\begin{equation}
-\text{TSC} = \frac{\text{Cadastros Bem-sucedidos}}{\text{Total de Ingestões Submetidas}} \times 100\%
-\end{equation}
-\item \textbf{Custo por Ingestão (CPI):} Representa o valor financeiro médio (USD) cobrado para processar um lote padrão de 1.000 questões, permitindo avaliar a sustentabilidade operacional a longo prazo com base nas chamadas de tokens da API Vertex AI.
-\item \textbf{Taxa de Redução de Upload (TRU):} Percentual de imagens duplicadas descartadas antes da etapa de upload ao storage:
-\begin{equation}
-\text{TRU} = \left( 1 - \frac{\text{Imagens Enviadas ao Storage}}{\text{Imagens Totais no PDF}} \right) \times 100\%
-\end{equation}
+\item \textbf{Aderência ao Requisito (Functional Correctness):} Mede o percentual de funções e rotinas de pipeline geradas de forma assistida que passam integralmente na suíte de testes unitários e de integração com a API da plataforma PLURI.
+\item \textbf{Esforço de Refatoração (Edit Distance):} Medição da distância de edição (quantidade de adições, remoções e alterações manuais de linhas) necessária para estabilizar o código gerado pelo LLM e torná-lo aderente ao ambiente de produção.
+\item \textbf{Complexidade Ciclomática:} Medida qualitativa e quantitativa da simplicidade, legibilidade e facilidade de manutenção estrutural do código de parsing gerado (comparando a saída do Gemini Pro versus o modelo Flash).
+\item \textbf{Densidade de Erros de Integração:} Quantidade de quebras de contrato de payload (erros de validação Pydantic e falhas Beans HTTP 400/500 detectadas do lado do servidor) ocorridas ao longo das iterações de desenvolvimento do agente.
 \end{enumerate}
 
 \section{Análise de Custos, Desempenho e Engenharia de Integração}
