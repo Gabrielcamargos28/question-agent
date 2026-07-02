@@ -1,10 +1,10 @@
 import asyncio
-from services.ai_extractor import extract_questions_ai
-from services.document_parser import parse_document
+from app.services.ai_extractor import extract_questions_ai
+from app.services.document_parser import parse_document
 import os
 
 async def test_extraction():
-    file_path = "prova-pluri-ELE-2.pdf"
+    file_path = "data/raw/prova-pluri-ELE-2.pdf"
     if not os.path.exists(file_path):
         print(f"File {file_path} not found.")
         return
