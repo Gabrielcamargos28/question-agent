@@ -1,3 +1,61 @@
-/venv/
-/secret/
-/.env
+# Python Virtual Environments
+venv/
+.venv/
+ENV/
+env/
+
+# Sensitive Information
+.env
+secret/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Python Caches & Build Files
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.benchmarks/
+.coverage
+htmlcov/
+coverage.xml
+report.xml
+
+# SonarQube Scanner
+.scannerwork/
+sonar_report.json
+
+# LaTeX Auxiliary Compilation Files
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+artigo/*.aux
+artigo/*.bbl
+artigo/*.blg
+artigo/*.log
+artigo/*.out
+artigo/*.toc
+artigo/*.lof
+artigo/*.lot
+artigo/*.synctex.gz
+artigo/*.fdb_latexmk
+artigo/*.fls
+
+# Large Datasets / Zip Files
+*.zip
+*.tar.gz
+*.rar
+*Banco de Questões*
